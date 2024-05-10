@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 
 	"mock_server/handler/epg"
@@ -15,5 +16,6 @@ func main() {
 		http.HandleFunc("/api/status", epg.StatusResponseHandler)
 	}
 
+	fmt.Println("Listening on port 5555")
 	http.ListenAndServe(":5555", nil)
 }
