@@ -2,6 +2,7 @@ package epg
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -67,6 +68,8 @@ func StatusResponseHandler(w http.ResponseWriter, r *http.Request) {
 	trxID := r.URL.Query().Get("transaction_id")
 
 	store[orderID]++
+
+	fmt.Println(r.URL.RawQuery, store)
 
 	if store[orderID] >= 3 {
 		w.Write(getStatusResponse(orderID, trxID, "DECLINED"))
