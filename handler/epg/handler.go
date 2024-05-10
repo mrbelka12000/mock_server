@@ -105,9 +105,8 @@ func PurchaseHandler(w http.ResponseWriter, r *http.Request) {
 
 	body, _ := json.Marshal(resp)
 
-	w.Write(body)
-
 	w.WriteHeader(http.StatusCreated)
+	w.Write(body)
 }
 
 func getStatusResponse(orderID, trxID, status string) []byte {
