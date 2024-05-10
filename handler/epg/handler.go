@@ -71,7 +71,7 @@ func StatusResponseHandler(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println(r.URL.RawQuery, store)
 
-	if store[orderID] >= 3 {
+	if store[orderID] >= 2 {
 		w.Write(getStatusResponse(orderID, trxID, "DECLINED"))
 		return
 	}
