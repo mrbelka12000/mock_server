@@ -31,7 +31,7 @@ jobs:
     needs: docker-setup
     environment:
       name: production
-      url: https://t.me/ProblemParserBot
+      url: https://mock.webhooker.online/
     steps:
       - name: Checkout 🛎
         uses: actions/checkout@master
