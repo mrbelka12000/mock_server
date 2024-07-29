@@ -16,6 +16,14 @@ type (
 			URI     string `json:"uri"`
 		} `json:"errors"`
 	}
+
+	apiStatusResponse struct {
+		Orders []struct {
+			Descriptor     string `json:"descriptor"`
+			Status         string `json:"status"`
+			FailureMessage string `json:"failure_message"`
+		}
+	}
 )
 
 func PurchaseCreateError(w http.ResponseWriter, r *http.Request) {
@@ -35,6 +43,28 @@ func PurchaseCreateError(w http.ResponseWriter, r *http.Request) {
 			{
 				Message: "empty order id",
 				URI:     "",
+			},
+		},
+	}
+
+	err := json.NewEncoder(w).Encode(obj)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Println(fmt.Errorf("bizon get response error: %w", err))
+		return
+	}
+}
+
+func StatusResponseHanlder(w http.ResponseWriter, r *http.Request) {
+	obj := &apiStatusResponse{
+		Orders: []struct {
+			Descriptor     string `json:"descriptor"`
+			Status         string `json:"status"`
+			FailureMessage string `json:"failure_message"`
+		}{
+			{
+				Status:         "rejected",
+				FailureMessage: "invalid order id",
 			},
 		},
 	}

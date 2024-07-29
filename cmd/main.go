@@ -19,6 +19,7 @@ func main() {
 
 	{
 		http.HandleFunc("/orders/authorize", bizon.PurchaseCreateError)
+		http.HandleFunc("/orders", bizon.StatusResponseHanlder)
 	}
 
 	fmt.Println("Listening on port 5555")
