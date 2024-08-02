@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	"mock_server/handler/bizon"
@@ -21,6 +22,17 @@ func main() {
 		http.HandleFunc("/orders/authorize", bizon.PurchaseCreateError)
 		http.HandleFunc("/orders", bizon.StatusResponseHanlder)
 	}
+
+	go func() {
+		//health check
+		http.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
+			w.Write([]byte("ok"))
+		})
+		err := http.ListenAndServe(":5555", nil)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
 
 	fmt.Println("Listening on port 5555")
 	http.ListenAndServe(":5555", nil)
