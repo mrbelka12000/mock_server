@@ -3,4 +3,4 @@
 
 $\color{blue}{\textsf{Blue}}$
 
-$\color{{brown}}{\textsf{Medium}}$
+$\color{{blue}}{\textsf{Medium}}$
