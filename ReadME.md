@@ -3,7 +3,7 @@
 
 $\color{blue}{\textsf{Blue}}$
 
-$\color{{lightgray}}{\textsf{Medium}}$
+$\color{{orange}}{\textsf{Medium}}$
 
 | $\color{black}{\textsf{Black}}$ |  $\color{blue}{\textsf{Blue}}$ | $\color{brown}{\textsf{Brown}}$ | $\color{darkgray}{\textsf{Dark Gray}}$  | $\color{gray}{\textsf{Gray}}$ | 
 | ------------- | ------------- | ------------- | ------------- | ------------- | 
