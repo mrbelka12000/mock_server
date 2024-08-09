@@ -3,4 +3,4 @@
 
 $\color{blue}{\textsf{Blue}}$
 
-$\color[red][\textsf[test]]$
+$\color{{orange}}{\textsf{Medium}}$
