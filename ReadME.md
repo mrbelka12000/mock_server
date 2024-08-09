@@ -3,4 +3,4 @@
 
 $\color{blue}{\textsf{Blue}}$
 
-$\color[{{ .Color }}][\textsf[{{ .Difficulty }}]]$
+$\color[red][\textsf[test]]$
