@@ -3,5 +3,5 @@
 
 $\color{blue}{\textsf{Blue}}$
 
-$\color{{gray}}{\textsf{Medium}}$
+$\color{{lightgray}}{\textsf{Medium}}$
 
