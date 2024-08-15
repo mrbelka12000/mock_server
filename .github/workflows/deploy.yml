@@ -44,4 +44,4 @@ jobs:
           chmod 600 ~/.ssh/id_rsa.pub
       - name: copy builds to server
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.USER_IP }} "docker service update --force --image ghcr.io/${{ secrets.OWNER }}/mock_server:latest mock_server_service"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.USER_IP }} "docker service update --force  --rollback-parallelism 1 --image ghcr.io/${{ secrets.OWNER }}/mock_server:latest mock_server_service"
