@@ -22,12 +22,10 @@ func main() {
 		http.HandleFunc("/orders", bizon.StatusResponseHanlder)
 	}
 
-	go func() {
-		//health check
-		http.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
-			w.Write([]byte("ok"))
-		})
-	}()
+	//health check
+	http.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("ok"))
+	})
 
 	fmt.Println("Listening on port 5555")
 	http.ListenAndServe(":5555", nil)
