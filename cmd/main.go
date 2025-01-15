@@ -6,6 +6,7 @@ import (
 
 	"mock_server/handler/bizon"
 	"mock_server/handler/epg"
+	"mock_server/handler/magua"
 )
 
 func main() {
@@ -17,9 +18,16 @@ func main() {
 		http.HandleFunc("/api/status", epg.StatusResponseHandler)
 	}
 
+	// Bizon
 	{
 		http.HandleFunc("/orders/authorize", bizon.PurchaseCreateError)
 		http.HandleFunc("/orders", bizon.StatusResponseHanlder)
+	}
+
+	// Magua
+	{
+		http.HandleFunc("/withdrawal/init", magua.CreatePayoutHandler)
+		http.HandleFunc("/check", magua.GetStatusHandler)
 	}
 
 	//health check
