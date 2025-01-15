@@ -37,10 +37,10 @@ func CreatePayoutHandler(w http.ResponseWriter, r *http.Request) {
 
 func getStatusResponse() []byte {
 	resp := PayoutStatusResponse{
-		Status:       2,
-		RRN:          "from_mock_server",
-		Err:          "",
-		ErrorMessage: "",
+		Status:       -1,
+		RRN:          "from_mock_server_with_error",
+		Err:          "Undefined",
+		ErrorMessage: "Decline from acquiring",
 	}
 
 	body, _ := json.Marshal(resp)
