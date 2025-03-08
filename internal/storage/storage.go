@@ -58,8 +58,6 @@ func (s Store) GetHandlersByServiceID(ctx context.Context, serviceID int64) ([]i
 			return nil, fmt.Errorf("get cases by handler: %w", err)
 		}
 
-		fmt.Println(handler.Cases, "suka")
-
 		handlers = append(handlers, handler)
 	}
 

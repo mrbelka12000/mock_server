@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -15,40 +16,40 @@ import (
 	"github.com/mrbelka12000/mock_server/pkg/server"
 )
 
-func Run() {
+func Run() error {
 
 	cfg, err := config.Get()
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("get config: %w", err)
 	}
 
-	log := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	log := slog.New(slog.NewJSONHandler(os.Stdout, nil)).With("app", "sever")
 
 	db, err := database.Connect(cfg)
 	if err != nil {
-		log.With("error", err).Error("connect database")
-		return
+		return fmt.Errorf("connect database: %w", err)
 	}
 	defer db.Close()
 
 	store := storage.New(db)
 
 	srv := service.New(store)
-	dynHandler := handler.NewDynamicHandler(srv, handler.WithLogger(log))
-	server := server.Run(dynHandler, cfg.HTTPPort)
+	dynHandler := handler.NewDynamicHandler(srv, handler.WithLogger(log.With("module", "handler")))
+	httpServer := server.Run(dynHandler, cfg.ServerPort)
 
 	waitCh := make(chan os.Signal)
 
 	signal.Notify(waitCh, syscall.SIGINT, syscall.SIGTERM)
 
-	log.With("port", cfg.HTTPPort).Info("server started")
+	log.With("port", cfg.ServerPort).Info("server started")
 	select {
 	case <-waitCh:
 		log.Info("Interrupt signal received")
-		server.Close(context.Background())
-	case <-server.Wait():
+		httpServer.Close(context.Background())
+	case <-httpServer.Wait():
 		log.Info("Server exited")
 	}
 
-	log.Info("Shutting down app")
+	log.Info("Shutting down")
+	return nil
 }

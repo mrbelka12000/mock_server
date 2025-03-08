@@ -1,11 +1,19 @@
 package main
 
-import "github.com/mrbelka12000/mock_server/cmd/server"
+import (
+	"log"
+
+	"github.com/mrbelka12000/mock_server/cmd/client"
+	"github.com/mrbelka12000/mock_server/cmd/server"
+)
 
 func main() {
 	go func() {
-		server.Run()
+		client.Run()
 	}()
 
-	<-make(chan bool)
+	if err := server.Run(); err != nil {
+		log.Println(err)
+		return
+	}
 }
