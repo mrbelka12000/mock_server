@@ -12,6 +12,11 @@ import (
 	"github.com/mrbelka12000/mock_server/pkg/server"
 )
 
+const (
+	indexHTML   = "./web/public/index.html"
+	serviceHTML = "./web/public/service.html"
+)
+
 func Run() {
 	cfg, err := config.Get()
 	if err != nil {
@@ -22,13 +27,19 @@ func Run() {
 
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {})
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, indexHTML)
+	})
+	mux.HandleFunc("/service", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, serviceHTML)
+	})
+
 	httpServer := server.Run(mux, cfg.ClientPort)
 	waitCh := make(chan os.Signal)
 
 	signal.Notify(waitCh, syscall.SIGINT, syscall.SIGTERM)
 
-	log.With("port", cfg.ServerPort).Info("client started")
+	log.With("port", cfg.ClientPort).Info("client started")
 	select {
 	case <-waitCh:
 		log.Info("Interrupt signal received")

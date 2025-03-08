@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mock Server</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 24px;
+      max-width: 800px;
+      margin: auto;
+    }
+    .service {
+      border: 1px solid #ddd;
+      padding: 16px;
+      border-radius: 4px;
+      box-shadow: 0px 1px 3px rgba(0,0,0,0.1);
+      margin-bottom: 16px;
+      cursor: pointer;
+    }
+    .handler {
+      margin-left: 16px;
+      padding: 8px;
+      border-left: 2px solid #3b82f6;
+    }
+    .case {
+      margin-left: 32px;
+      padding: 4px;
+      border-left: 2px solid #888;
+    }
+    .headers {
+      margin-top: 4px;
+      padding-left: 8px;
+      border-left: 2px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+<h1>Mock Server</h1>
+<div id="servicesContainer"></div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const servicesContainer = document.getElementById("servicesContainer");
+    const tagMapper = { 1: "Default", 2: "On equal" };
+
+    function renderServices(services) {
+      servicesContainer.innerHTML = "";
+      services.forEach(service => {
+        const serviceDiv = document.createElement("div");
+        serviceDiv.className = "service";
+        serviceDiv.innerHTML = `<h2>Name: ${service.name}</h2><p><strong>Cases:</strong></p>`;
+        serviceDiv.addEventListener("click", () => {
+          window.location.href = `http://localhost:5553/service?id=${service.id}`;
+        });
+
+        service.handlers.forEach(handler => {
+          const handlerDiv = document.createElement("div");
+          handlerDiv.className = "handler";
+          handlerDiv.innerHTML = `<h3>Route: ${handler.route}</h3>`;
+
+          handler.cases.forEach(caseItem => {
+            const caseDiv = document.createElement("div");
+            caseDiv.className = "case";
+            caseDiv.innerHTML = `
+                                <p><strong>Tag:</strong> ${tagMapper[caseItem.tag] || caseItem.tag}</p>
+                                <p><strong>Request Body:</strong> ${caseItem.request_body}</p>
+                                <p><strong>Response Body:</strong> ${caseItem.response_body}</p>
+                                <div class="headers"><strong>Request Headers:</strong> ${JSON.stringify(caseItem.request_headers || {}, null, 2)}</div>
+                                <div class="headers"><strong>Response Headers:</strong> ${JSON.stringify(caseItem.response_headers || {}, null, 2)}</div>
+                            `;
+            handlerDiv.appendChild(caseDiv);
+          });
+
+          serviceDiv.appendChild(handlerDiv);
+        });
+
+        servicesContainer.appendChild(serviceDiv);
+      });
+    }
+
+    function fetchServices() {
+      fetch("http://localhost:5552/service")
+              .then(res => res.json())
+              .then(data => renderServices(data))
+              .catch(err => console.error("Error fetching services", err));
+    }
+
+    fetchServices();
+  });
+</script>
+</body>
+</html>

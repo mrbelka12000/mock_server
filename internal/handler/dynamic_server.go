@@ -2,8 +2,6 @@ package handler
 
 import (
 	"context"
-	"fmt"
-	"html/template"
 	"io"
 	"log/slog"
 	"net/http"
@@ -63,6 +61,10 @@ func (h *DynamicRouter) start() {
 }
 
 func (h *DynamicRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+	w.Header().Set("Access-Control-Allow-Headers", "*")
+	w.Header().Set("Access-Control-Expose-Headers", "Authorization")
 
 	switch r.URL.Path {
 	case "/service":
@@ -111,41 +113,15 @@ func (h *DynamicRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		for k, v := range respHeader {
 			w.Header()[k] = v
-			fmt.Println(k, v)
 		}
+
 		w.WriteHeader(200)
 		w.Write(respBody)
 	}
 }
 
 func (h *DynamicRouter) Index(w http.ResponseWriter, r *http.Request) {
-
-	t, err := template.ParseFiles(templatePath + "index.html")
-	if err != nil {
-		h.log.With("error", err).Error("failed to parse template")
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	result, err := h.srv.ListServices(r.Context())
-	if err != nil {
-		h.log.With("error", err).Error("failed to list services")
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	var data = struct {
-		Services []internal.Service
-	}{
-		Services: result,
-	}
-
-	err = t.Execute(w, data)
-	if err != nil {
-		h.log.With("error", err).Error("failed to execute template")
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	
 }
 
 // processer adds new paths to router

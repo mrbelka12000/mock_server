@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Service Details</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 24px;
+      max-width: 800px;
+      margin: auto;
+    }
+    .service {
+      border: 1px solid #ddd;
+      padding: 16px;
+      border-radius: 4px;
+      box-shadow: 0px 1px 3px rgba(0,0,0,0.1);
+      margin-bottom: 16px;
+    }
+    .handler {
+      margin-top: 16px;
+      padding: 12px;
+      border: 1px solid #aaa;
+      border-radius: 4px;
+    }
+    .case {
+      margin-left: 16px;
+      padding: 8px;
+      border-left: 2px solid #888;
+    }
+    .form-container {
+      margin-top: 20px;
+      padding: 16px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    label, input {
+      display: block;
+      margin-bottom: 10px;
+    }
+    .headers-container {
+      margin-bottom: 10px;
+    }
+    button {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 4px;
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+      margin-right: 8px;
+      margin-top: 10px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+<h1>Service Details</h1>
+<div class="form-container">
+  <h2>Assign Handler</h2>
+  <form id="assignHandlerForm">
+    <label>Route: <input type="text" id="route" required></label>
+    <div id="casesContainer"></div>
+    <button type="button" id="addCaseBtn">Add Case</button>
+    <button type="submit">Submit</button>
+  </form>
+</div>
+
+<div id="serviceContainer" class="service"></div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const serviceContainer = document.getElementById("serviceContainer");
+    const urlParams = new URLSearchParams(window.location.search);
+    const serviceId = urlParams.get("id");
+    const assignHandlerForm = document.getElementById("assignHandlerForm");
+    const casesContainer = document.getElementById("casesContainer");
+    const addCaseBtn = document.getElementById("addCaseBtn");
+
+    function renderService(service) {
+      serviceContainer.innerHTML = `
+                    <h2>Name: ${service.name}</h2>
+                    <h3>Handlers:</h3>
+                    ${service.handlers.map(handler => `
+                        <div class="handler">
+                            <h4>Route: ${handler.route}</h4>
+                            <h5>Cases:</h5>
+                            ${handler.cases.map(caseItem => `
+                                <div class="case">
+                                    <p><strong>Tag:</strong> ${caseItem.tag}</p>
+                                    <p><strong>Request Body:</strong> ${caseItem.request_body}</p>
+                                    <p><strong>Response Body:</strong> ${caseItem.response_body}</p>
+                                    <div><strong>Request Headers:</strong> ${JSON.stringify(caseItem.request_headers || {}, null, 2)}</div>
+                                    <div><strong>Response Headers:</strong> ${JSON.stringify(caseItem.response_headers || {}, null, 2)}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `).join('')}
+                `;
+    }
+
+
+    fetch(`http://localhost:5552/service?id=${serviceId}`)
+            .then(res => res.json())
+            .then(data => renderService(data))
+            .catch(err => console.error("Error fetching service details", err));
+
+
+    function createHeadersInputContainer(labelText, className) {
+      const container = document.createElement("div");
+      container.className = className;
+      container.innerHTML = `
+                    <strong>${labelText}</strong>
+                    <div class="headers-list"></div>
+                    <button type="button" class="add-header">Add Header</button>
+                `;
+      container.querySelector(".add-header").addEventListener("click", () => {
+        const headerDiv = document.createElement("div");
+        headerDiv.innerHTML = `
+                        <input type="text" placeholder="Key" class="header-key">
+                        <input type="text" placeholder="Value" class="header-value">
+                        <button type="button" class="remove-header">×</button>
+                    `;
+        headerDiv.querySelector(".remove-header").addEventListener("click", () => headerDiv.remove());
+        container.querySelector(".headers-list").appendChild(headerDiv);
+      });
+      return container;
+    }
+
+    addCaseBtn.addEventListener("click", () => {
+      const caseDiv = document.createElement("div");
+      caseDiv.className = "case-form";
+      caseDiv.innerHTML = `
+                    <label>Tag: <input type="number" class="tag" required></label>
+                    <label>Request Body: <input type="text" class="requestBody"></label>
+                    <label>Response Body: <input type="text" class="responseBody"></label>
+                    <button type="button" onclick="this.parentElement.remove()">Remove Case</button>
+                `;
+      caseDiv.appendChild(createHeadersInputContainer("Request Headers:", "requestHeaders"));
+      caseDiv.appendChild(createHeadersInputContainer("Response Headers:", "responseHeaders"));
+      casesContainer.appendChild(caseDiv);
+    });
+
+
+    assignHandlerForm.addEventListener("submit", function(event) {
+      event.preventDefault();
+      const route = document.getElementById("route").value;
+      const cases = [];
+
+      document.querySelectorAll(".case-form").forEach(caseDiv => {
+        const requestHeaders = {};
+        caseDiv.querySelectorAll(".requestHeaders .headers-list > div").forEach(headerDiv => {
+          const key = headerDiv.querySelector(".header-key")?.value.trim();
+          const value = headerDiv.querySelector(".header-value")?.value.trim();
+          if (key && value) {
+            if (!requestHeaders[key]) {
+              requestHeaders[key] = []; // Initialize as an array
+            }
+            requestHeaders[key].push(value); // Append value to array;
+          }
+        });
+
+        const responseHeaders = {};
+        caseDiv.querySelectorAll(".responseHeaders .headers-list > div").forEach(headerDiv => {
+          const key = headerDiv.querySelector(".header-key")?.value.trim();
+          const value = headerDiv.querySelector(".header-value")?.value.trim();
+          if (key && value) {
+            if (!responseHeaders[key]) {
+              responseHeaders[key] = []; // Initialize as an array
+            }
+            responseHeaders[key].push(value); // Append value to array
+          }
+        });
+
+        console.log("Request Headers:", requestHeaders);
+        console.log("Response Headers:", responseHeaders);
+
+        cases.push({
+          tag: parseInt(caseDiv.querySelector(".tag").value),
+          request_body: caseDiv.querySelector(".requestBody").value,
+          response_body: caseDiv.querySelector(".responseBody").value,
+          request_headers: requestHeaders,
+          response_headers: responseHeaders
+        });
+      });
+
+      fetch("http://localhost:5552/handler", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ service_id: parseInt(serviceId), route, cases })
+      })
+              .then(res => res.json())
+              .then(data => {
+                alert("Handler assigned successful  ly");
+                assignHandlerForm.reset();
+                casesContainer.innerHTML = "";
+                fetch(`http://localhost:5552/service?id=${serviceId}`)
+                        .then(res => res.json())
+                        .then(data => renderService(data));
+              })
+              .catch(err => alert("Error assigning handler"));
+    });
+  });
+</script>
+</body>
+</html>

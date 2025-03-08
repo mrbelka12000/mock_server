@@ -44,7 +44,6 @@ func (s *Service) HandleRoute(ctx context.Context, serviceName, route string, re
 		h     internal.Handler
 		found bool
 	)
-	fmt.Printf("%s: %+v\n", route, srv)
 
 	for i := 0; i < len(srv.Handlers); i++ {
 		if srv.Handlers[i].Route == route {
@@ -57,7 +56,6 @@ func (s *Service) HandleRoute(ctx context.Context, serviceName, route string, re
 	if !found {
 		return nil, nil, fmt.Errorf("handler not found: %s", route)
 	}
-	fmt.Printf("%+v\n", h)
 
 	for _, cs := range h.Cases {
 		if cs.Tag == internal.TagEqual {
