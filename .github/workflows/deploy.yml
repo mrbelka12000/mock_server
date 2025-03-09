@@ -17,14 +17,14 @@ jobs:
 
       - name: Login
         run: |
-          echo ${{ secrets.PASSWORD }} | docker login ghcr.io -u $OWNER  --password-stdin 
+          echo ${{ secrets.PASSWORD }} | docker login -u $OWNER  --password-stdin 
 
       - name: Build
         run: |
-          docker build -t ghcr.io/$OWNER/mock_server:latest .
+          docker build -t $OWNER/mock_server:latest .
       - name: Docker push
         run: |
-          docker push ghcr.io/$OWNER/mock_server:latest
+          docker push $OWNER/mock_server:latest
 
   production:
     runs-on: ubuntu-latest
@@ -44,4 +44,4 @@ jobs:
           chmod 600 ~/.ssh/id_rsa.pub
       - name: copy builds to server
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.USER_IP }} "docker service update --force  --rollback-parallelism 1 --image ghcr.io/${{ secrets.OWNER }}/mock_server:latest mock_server_service"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.USER_IP }} "docker service update --force  --rollback-parallelism 1 --image ${{ secrets.OWNER }}/mock_server:latest mock_server_service"
