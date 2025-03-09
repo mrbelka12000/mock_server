@@ -50,9 +50,8 @@ func (h *DynamicRouter) assignHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	
+
 	// add new paths in router
 	h.processer(srv)
-
-	w.Write([]byte("OK"))
+	w.Write(okResponse)
 }

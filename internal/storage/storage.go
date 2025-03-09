@@ -16,7 +16,7 @@ func New(db *sql.DB) *Store {
 	return &Store{db: db}
 }
 
-func (s Store) GetServiceByName(ctx context.Context, serviceName string) (internal.Service, error) {
+func (s *Store) GetServiceByName(ctx context.Context, serviceName string) (internal.Service, error) {
 	var srv internal.Service
 
 	err := s.db.QueryRowContext(ctx, `
@@ -35,7 +35,7 @@ WHERE name = $1`, serviceName).Scan(&srv.ID, &srv.Name)
 	return srv, nil
 }
 
-func (s Store) GetHandlersByServiceID(ctx context.Context, serviceID int64) ([]internal.Handler, error) {
+func (s *Store) GetHandlersByServiceID(ctx context.Context, serviceID int64) ([]internal.Handler, error) {
 	rows, err := s.db.QueryContext(ctx, `
 	SELECT id, service_id, route 
 	FROM handlers
@@ -68,7 +68,7 @@ func (s Store) GetHandlersByServiceID(ctx context.Context, serviceID int64) ([]i
 	return handlers, nil
 }
 
-func (s Store) GetServiceByID(ctx context.Context, id int64) (internal.Service, error) {
+func (s *Store) GetServiceByID(ctx context.Context, id int64) (internal.Service, error) {
 	var srv internal.Service
 	err := s.db.QueryRowContext(ctx, `
 SELECT id, name
@@ -86,7 +86,7 @@ WHERE id = $1`, id).Scan(&srv.ID, &srv.Name)
 	return srv, nil
 }
 
-func (s Store) AddService(ctx context.Context, service internal.Service) error {
+func (s *Store) AddService(ctx context.Context, service internal.Service) error {
 	_, err := s.db.Exec(`
 INSERT INTO services
 (name) 
@@ -98,7 +98,7 @@ VALUES
 	return nil
 }
 
-func (s Store) ListServices(ctx context.Context) ([]internal.Service, error) {
+func (s *Store) ListServices(ctx context.Context) ([]internal.Service, error) {
 	rows, err := s.db.QueryContext(ctx, `
 SELECT id, name
 FROM services
@@ -130,7 +130,7 @@ FROM services
 	return services, nil
 }
 
-func (s Store) AssignHandlerToService(ctx context.Context, serviceID int64, obj internal.HandlerCU) (int64, error) {
+func (s *Store) AssignHandlerToService(ctx context.Context, serviceID int64, obj internal.HandlerCU) (int64, error) {
 	var id int64
 
 	err := s.db.QueryRowContext(ctx, `
@@ -147,7 +147,7 @@ RETURNING id
 	return id, nil
 }
 
-func (s Store) AssignCasesToHandler(ctx context.Context, handlerID int64, cases []internal.HandlerCasesCU) error {
+func (s *Store) AssignCasesToHandler(ctx context.Context, handlerID int64, cases []internal.HandlerCasesCU) error {
 
 	for _, cs := range cases {
 		_, err := s.db.ExecContext(ctx, `
@@ -164,7 +164,7 @@ VALUES
 	return nil
 }
 
-func (s Store) GetCasesByHandlerID(ctx context.Context, handlerID int64) ([]internal.HandlerCases, error) {
+func (s *Store) GetCasesByHandlerID(ctx context.Context, handlerID int64) ([]internal.HandlerCases, error) {
 	rows, err := s.db.QueryContext(ctx, `
 SELECT id, handler_id, tag_case, request_body, response_body, request_headers, response_headers
 FROM handler_cases
@@ -199,4 +199,15 @@ WHERE handler_id = $1`, handlerID)
 	}
 
 	return cases, nil
+}
+
+func (s *Store) DeleteCase(ctx context.Context, id int64) error {
+	_, err := s.db.Exec(`
+DELETE FROM handler_cases
+WHERE id = $1`, id)
+	if err != nil {
+		return fmt.Errorf("delete handler_cases: %w", err)
+	}
+
+	return nil
 }

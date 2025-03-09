@@ -1,8 +1,7 @@
-package server
+package main
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -16,18 +15,19 @@ import (
 	"github.com/mrbelka12000/mock_server/pkg/server"
 )
 
-func Run() error {
+func main() {
 
 	cfg, err := config.Get()
 	if err != nil {
-		return fmt.Errorf("get config: %w", err)
+		panic(err)
 	}
 
 	log := slog.New(slog.NewJSONHandler(os.Stdout, nil)).With("app", "sever")
 
 	db, err := database.Connect(cfg)
 	if err != nil {
-		return fmt.Errorf("connect database: %w", err)
+		log.With("error", err).Error("connect to database")
+		return
 	}
 	defer db.Close()
 
@@ -51,5 +51,4 @@ func Run() error {
 	}
 
 	log.Info("Shutting down")
-	return nil
 }

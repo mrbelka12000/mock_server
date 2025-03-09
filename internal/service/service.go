@@ -23,6 +23,7 @@ type (
 		ListServices(ctx context.Context) ([]internal.Service, error)
 		AssignHandlerToService(ctx context.Context, serviceID int64, handler internal.HandlerCU) (int64, error)
 		AssignCasesToHandler(ctx context.Context, handlerID int64, cases []internal.HandlerCasesCU) error
+		DeleteCase(ctx context.Context, id int64) error
 	}
 )
 
@@ -122,4 +123,8 @@ func (s *Service) AssignHandlerToService(ctx context.Context, obj internal.Handl
 	}
 
 	return nil
+}
+
+func (s *Service) DeleteCase(ctx context.Context, id int64) error {
+	return s.store.DeleteCase(ctx, id)
 }

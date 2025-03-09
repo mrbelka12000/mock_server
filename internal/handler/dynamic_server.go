@@ -13,8 +13,8 @@ import (
 	"github.com/mrbelka12000/mock_server/internal/service"
 )
 
-const (
-	templatePath = "html_templates/"
+var (
+	okResponse = []byte(`{"message": "OK"}`)
 )
 
 type (
@@ -67,13 +67,21 @@ func (h *DynamicRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Expose-Headers", "Authorization")
 
 	switch r.URL.Path {
-	case "/service":
+	case "/api/service":
 		h.HandleService(w, r)
-	case "/handler":
+	case "/api/handler":
 		h.HandleHandlers(w, r)
+	case "/api/case":
+		h.HandleCases(w, r)
 	case "/":
-		h.Index(w, r)
+		h.HandleIndexPage(w, r)
+	case "/service":
+		h.HandleServicePage(w, r)
 	default:
+		if !strings.HasPrefix(r.URL.Path, "/api") {
+			http.NotFound(w, r)
+			return
+		}
 		paths := strings.Split(strings.TrimLeft(r.URL.Path, "/"), "/")
 		if len(paths) != 3 {
 			http.NotFound(w, r)
@@ -118,10 +126,6 @@ func (h *DynamicRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
 		w.Write(respBody)
 	}
-}
-
-func (h *DynamicRouter) Index(w http.ResponseWriter, r *http.Request) {
-	
 }
 
 // processer adds new paths to router

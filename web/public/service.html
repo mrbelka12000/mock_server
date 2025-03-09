@@ -82,28 +82,50 @@
 
     function renderService(service) {
       serviceContainer.innerHTML = `
-                    <h2>Name: ${service.name}</h2>
-                    <h3>Handlers:</h3>
-                    ${service.handlers.map(handler => `
-                        <div class="handler">
-                            <h4>Route: ${handler.route}</h4>
-                            <h5>Cases:</h5>
-                            ${handler.cases.map(caseItem => `
-                                <div class="case">
-                                    <p><strong>Tag:</strong> ${caseItem.tag}</p>
-                                    <p><strong>Request Body:</strong> ${caseItem.request_body}</p>
-                                    <p><strong>Response Body:</strong> ${caseItem.response_body}</p>
-                                    <div><strong>Request Headers:</strong> ${JSON.stringify(caseItem.request_headers || {}, null, 2)}</div>
-                                    <div><strong>Response Headers:</strong> ${JSON.stringify(caseItem.response_headers || {}, null, 2)}</div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    `).join('')}
-                `;
+    <h2>Name: ${service.name}</h2>
+    <h3>Handlers:</h3>
+    ${ (service.handlers || []).map(handler => `
+      <div class="handler">
+        <h4>Route: ${handler.route}</h4>
+        <h5>Cases:</h5>
+        ${ (handler.cases || []).length > 0 ? handler.cases.map(caseItem => `
+          <div class="case">
+            <p><strong>Tag:</strong> ${caseItem.tag}</p>
+            <p><strong>Request Body:</strong> ${caseItem.request_body}</p>
+            <p><strong>Response Body:</strong> ${caseItem.response_body}</p>
+            <div><strong>Request Headers:</strong> ${JSON.stringify(caseItem.request_headers || {}, null, 2)}</div>
+            <div><strong>Response Headers:</strong> ${JSON.stringify(caseItem.response_headers || {}, null, 2)}</div>
+            <button class="delete-case" data-case-id="${caseItem.id}">Delete Case</button>
+          </div>
+        `).join('') : `<p>No cases available</p>` }
+      </div>
+    `).join('') || `<p>No handlers available</p>` }
+  `;
+
+      // Attach event listeners to delete buttons
+      document.querySelectorAll(".delete-case").forEach(button => {
+        button.addEventListener("click", function() {
+          const caseId = this.getAttribute("data-case-id");
+
+          fetch(`/api/case?id=${caseId}`, { method: "DELETE" })
+                  .then(response => {
+                    if (!response.ok) {
+                      throw new Error("Failed to delete case");
+                    }
+                    return response.json();
+                  })
+                  .then(() => {
+                    alert("Case deleted successfully");
+                    fetch(`http://localhost:5552/service?id=${serviceId}`)
+                            .then(res => res.json())
+                            .then(data => renderService(data));
+                  })
+                  .catch(err => alert("Error deleting case: " + err.message));
+        });
+      });
     }
 
-
-    fetch(`http://localhost:5552/service?id=${serviceId}`)
+    fetch(`/api/service?id=${serviceId}`)
             .then(res => res.json())
             .then(data => renderService(data))
             .catch(err => console.error("Error fetching service details", err));
@@ -187,7 +209,7 @@
         });
       });
 
-      fetch("http://localhost:5552/handler", {
+      fetch("/api/handler", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ service_id: parseInt(serviceId), route, cases })
@@ -197,7 +219,7 @@
                 alert("Handler assigned successful  ly");
                 assignHandlerForm.reset();
                 casesContainer.innerHTML = "";
-                fetch(`http://localhost:5552/service?id=${serviceId}`)
+                fetch(`/api/service?id=${serviceId}`)
                         .then(res => res.json())
                         .then(data => renderService(data));
               })

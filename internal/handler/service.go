@@ -44,7 +44,7 @@ func (h *DynamicRouter) addService(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte("OK"))
+	w.Write(okResponse)
 }
 
 func (h *DynamicRouter) getService(w http.ResponseWriter, r *http.Request) {
