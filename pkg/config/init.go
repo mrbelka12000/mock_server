@@ -9,7 +9,7 @@ import (
 )
 
 type Config struct {
-	PGURL      string `env:"PG_URL,required"`
+	PathToDB   string `env:"PATH_TO_DB,required"`
 	ServerPort int    `env:"SERVER_PORT, default=5552"`
 }
 

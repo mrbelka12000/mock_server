@@ -3,9 +3,11 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 
 	"github.com/mrbelka12000/mock_server/internal"
+	"github.com/mrbelka12000/mock_server/pkg/pointer"
 )
 
 type Store struct {
@@ -152,12 +154,15 @@ RETURNING id
 func (s *Store) AssignCasesToHandler(ctx context.Context, handlerID int64, cases []internal.HandlerCasesCU) error {
 
 	for _, cs := range cases {
+		reqHeadersRaw, _ := json.Marshal(pointer.Value(cs.RequestHeaders))
+		respHeadersRaw, _ := json.Marshal(pointer.Value(cs.ResponseHeaders))
+
 		_, err := s.db.ExecContext(ctx, `
 INSERT INTO handler_cases
 (handler_id, tag_case, request_body, response_body, request_headers, response_headers) 
 VALUES 
 ($1, $2, $3, $4, $5, $6)
-`, handlerID, cs.Tag, cs.RequestBody, cs.ResponseBody, cs.RequestHeaders, cs.ResponseHeaders)
+`, handlerID, cs.Tag, cs.RequestBody, cs.ResponseBody, string(reqHeadersRaw), string(respHeadersRaw))
 		if err != nil {
 			return fmt.Errorf("insert handler_cases: %w", err)
 		}
@@ -182,17 +187,32 @@ ORDER BY id DESC
 	var cases []internal.HandlerCases
 
 	for rows.Next() {
-		var cs internal.HandlerCases
+		var (
+			cs             internal.HandlerCases
+			reqHeadersRaw  string
+			respHeadersRaw string
+		)
+
 		if err = rows.Scan(
 			&cs.ID,
 			&cs.HandlerID,
 			&cs.Tag,
 			&cs.RequestBody,
 			&cs.ResponseBody,
-			&cs.RequestHeaders,
-			&cs.ResponseHeaders,
+			&reqHeadersRaw,
+			&respHeadersRaw,
 		); err != nil {
 			return nil, fmt.Errorf("scan handler: %w", err)
+		}
+
+		err = json.Unmarshal([]byte(reqHeadersRaw), &cs.RequestHeaders)
+		if err != nil {
+			return nil, fmt.Errorf("unmarshal req_headers: %w", err)
+		}
+
+		err = json.Unmarshal([]byte(respHeadersRaw), &cs.ResponseHeaders)
+		if err != nil {
+			return nil, fmt.Errorf("unmarshal resp_headers: %w", err)
 		}
 
 		cases = append(cases, cs)
@@ -206,7 +226,7 @@ ORDER BY id DESC
 }
 
 func (s *Store) DeleteCase(ctx context.Context, id int64) error {
-	_, err := s.db.Exec(`
+	_, err := s.db.ExecContext(ctx, `
 DELETE FROM handler_cases
 WHERE id = $1`, id)
 	if err != nil {

@@ -1,11 +1,5 @@
 package internal
 
-import (
-	"database/sql/driver"
-	"encoding/json"
-	"errors"
-)
-
 type (
 	//Service
 	Service struct {
@@ -51,26 +45,3 @@ type (
 
 	Header map[string][]string
 )
-
-// Value ..
-func (j Header) Value() (driver.Value, error) {
-	if j == nil {
-		return []byte(`{}`), nil
-	}
-	return json.Marshal(j)
-}
-
-// Scan ..
-func (j *Header) Scan(value interface{}) error {
-	if value == nil {
-		*j = Header{}
-		return nil
-	}
-
-	bytes, ok := value.([]byte)
-	if !ok {
-		return errors.New("invalid data type for JSONB")
-	}
-
-	return json.Unmarshal(bytes, j)
-}
