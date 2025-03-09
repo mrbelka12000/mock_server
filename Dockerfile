@@ -11,7 +11,6 @@ ADD . .
 
 ENV GO111MODULE=on
 
-
 RUN  go build -o main cmd/main.go
 
 ## Deploy

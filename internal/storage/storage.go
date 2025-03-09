@@ -39,7 +39,8 @@ func (s *Store) GetHandlersByServiceID(ctx context.Context, serviceID int64) ([]
 	rows, err := s.db.QueryContext(ctx, `
 	SELECT id, service_id, route 
 	FROM handlers
-	WHERE service_id = $1`, serviceID)
+	WHERE service_id = $1
+	ORDER BY id DESC `, serviceID)
 	if err != nil {
 		return nil, fmt.Errorf("get handlers by service id %d: %w", serviceID, err)
 	}
@@ -102,6 +103,7 @@ func (s *Store) ListServices(ctx context.Context) ([]internal.Service, error) {
 	rows, err := s.db.QueryContext(ctx, `
 SELECT id, name
 FROM services
+ORDER BY id DESC
 `)
 	if err != nil {
 		return nil, fmt.Errorf("list services: %w", err)
@@ -168,7 +170,9 @@ func (s *Store) GetCasesByHandlerID(ctx context.Context, handlerID int64) ([]int
 	rows, err := s.db.QueryContext(ctx, `
 SELECT id, handler_id, tag_case, request_body, response_body, request_headers, response_headers
 FROM handler_cases
-WHERE handler_id = $1`, handlerID)
+WHERE handler_id = $1
+ORDER BY id DESC 
+`, handlerID)
 	if err != nil {
 		return nil, fmt.Errorf("get cases by handler_id %d: %w", handlerID, err)
 	}

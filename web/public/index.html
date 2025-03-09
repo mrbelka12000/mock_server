@@ -34,15 +34,40 @@
       padding-left: 8px;
       border-left: 2px solid #ccc;
     }
+    .form-container {
+      margin-bottom: 16px;
+    }
+    .input {
+      padding: 8px;
+      margin-right: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .button {
+      padding: 8px 12px;
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
 <h1>Mock Server</h1>
+
+<div class="form-container">
+  <input type="text" id="serviceName" class="input" placeholder="Enter service name">
+  <button id="createServiceBtn" class="button">Create Service</button>
+</div>
+
 <div id="servicesContainer"></div>
 
 <script>
   document.addEventListener("DOMContentLoaded", function() {
     const servicesContainer = document.getElementById("servicesContainer");
+    const serviceNameInput = document.getElementById("serviceName");
+    const createServiceBtn = document.getElementById("createServiceBtn");
     const tagMapper = { 1: "Default", 2: "On equal" };
 
     function renderServices(services) {
@@ -70,12 +95,12 @@
             const caseDiv = document.createElement("div");
             caseDiv.className = "case";
             caseDiv.innerHTML = `
-          <p><strong>Tag:</strong> ${tagMapper[caseItem.tag] || caseItem.tag}</p>
-          <p><strong>Request Body:</strong> ${caseItem.request_body}</p>
-          <p><strong>Response Body:</strong> ${caseItem.response_body}</p>
-          <div class="headers"><strong>Request Headers:</strong> ${JSON.stringify(caseItem.request_headers || {}, null, 2)}</div>
-          <div class="headers"><strong>Response Headers:</strong> ${JSON.stringify(caseItem.response_headers || {}, null, 2)}</div>
-        `;
+              <p><strong>Tag:</strong> ${tagMapper[caseItem.tag] || caseItem.tag}</p>
+              <p><strong>Request Body:</strong> ${caseItem.request_body}</p>
+              <p><strong>Response Body:</strong> ${caseItem.response_body}</p>
+              <div class="headers"><strong>Request Headers:</strong> ${JSON.stringify(caseItem.request_headers || {}, null, 2)}</div>
+              <div class="headers"><strong>Response Headers:</strong> ${JSON.stringify(caseItem.response_headers || {}, null, 2)}</div>
+            `;
             handlerDiv.appendChild(caseDiv);
           });
 
@@ -86,13 +111,39 @@
       });
     }
 
-
     function fetchServices() {
       fetch("/api/service")
               .then(res => res.json())
               .then(data => renderServices(data))
               .catch(err => console.error("Error fetching services", err));
     }
+
+    function createService() {
+      const serviceName = serviceNameInput.value.trim();
+      if (!serviceName) {
+        alert("Please enter a service name");
+        return;
+      }
+
+      fetch("/api/service", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: serviceName })
+      })
+              .then(response => {
+                if (!response.ok) {
+                  throw new Error("Failed to create service");
+                }
+                return response.json();
+              })
+              .then(() => {
+                serviceNameInput.value = "";
+                fetchServices();
+              })
+              .catch(err => console.error("Error creating service", err));
+    }
+
+    createServiceBtn.addEventListener("click", createService);
 
     fetchServices();
   });
